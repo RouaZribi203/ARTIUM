@@ -273,42 +273,42 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     /**
      * @var Collection<int, Reclamation>
      */
-    #[ORM\OneToMany(targetEntity: Reclamation::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: Reclamation::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Ignore]
     private Collection $reclamations;
 
     /**
      * @var Collection<int, Reponse>
      */
-    #[ORM\OneToMany(targetEntity: Reponse::class, mappedBy: 'user_admin')]
+    #[ORM\OneToMany(targetEntity: Reponse::class, mappedBy: 'user_admin', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Ignore]
     private Collection $reponses;
 
     /**
      * @var Collection<int, Evenement>
      */
-    #[ORM\OneToMany(targetEntity: Evenement::class, mappedBy: 'artiste')]
+    #[ORM\OneToMany(targetEntity: Evenement::class, mappedBy: 'artiste', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Ignore]
     private Collection $evenements;
 
     /**
      * @var Collection<int, Ticket>
      */
-    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Ignore]
     private Collection $tickets;
 
     /**
      * @var Collection<int, LocationLivre>
      */
-    #[ORM\OneToMany(targetEntity: LocationLivre::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: LocationLivre::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Ignore]
     private Collection $locationLivres;
 
     /**
      * @var Collection<int, Like>
      */
-    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Ignore]
     private Collection $likes;
 

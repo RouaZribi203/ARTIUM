@@ -1,107 +1,120 @@
 # ARTIUM
 
-## Overview
+## Description
 
-ARTIUM is a Symfony-based web platform dedicated to cultural and artistic events. It allows artists to publish events, amateurs to discover and join them, and administrators to manage the ecosystem from a moderation dashboard.
+ARTIUM est une plateforme Symfony dédiée aux projets artistiques et culturels. Le projet permet aux artistes de publier des événements, des oeuvres et des collections, tandis que les autres utilisateurs peuvent consulter le contenu, interagir avec la plateforme et réserver des tickets. L'administration dispose d'un espace de gestion pour modérer les comptes, suivre les réclamations et administrer les contenus. Le projet intègre aussi des fonctionnalités de paiement, d'upload de fichiers, de génération de PDF et de recherche. Plusieurs services externes sont branchés via des variables d'environnement, notamment Stripe, Meilisearch, reCAPTCHA et des API d'IA. L'objectif est de pouvoir installer et lancer l'application rapidement sur une nouvelle machine avec une base de données prête à l'emploi.
 
-## Features
+## Technologies utilisées
 
-- User authentication and role-based access (`admin`, `artiste`, `amateur`)
-- Event creation, update, and management workflows
-- Stripe ticket purchase flow with secure checkout
-- Ticket generation with QR code and PDF export
-- Email notifications after ticket purchase
-- Search integration with Meilisearch
-- Media uploads and gallery support
-- Multi-language interface support
-- reCAPTCHA protection on signup
+Frontend : Twig, JavaScript, Symfony UX, Asset Mapper
+Backend : PHP 8.1+, Symfony 6.4, Doctrine ORM, Doctrine Migrations
+Base de données : MySQL
 
-## Tech Stack
-
-### Frontend
-
-- Twig templates
-- Symfony UX (Stimulus, Turbo, Dropzone, Chart.js)
-- Asset Mapper
-- HTML/CSS/JavaScript
-
-### Backend
+## Prérequis
 
 - PHP 8.1+
-- Symfony 6.4
-- Doctrine ORM + Doctrine Migrations
-- MySQL (default local setup) / PostgreSQL (Docker option)
-- Stripe API, Meilisearch, Symfony Mailer
-- PHPUnit + PHPStan
+- Composer
+- Symfony CLI
+- MySQL 8+ ou MariaDB compatible
+- Docker (optionnel)
 
-## Architecture
+## Installation
 
-The project follows a layered Symfony architecture:
-
-- `src/Controller` handles HTTP requests and route actions
-- `src/Service` contains business logic and integrations
-- `src/Entity` and `src/Repository` manage persistence with Doctrine
-- `src/Form` encapsulates form definitions and validation flows
-- `templates/` provides Twig-based UI for front office and admin
-- `config/` centralizes framework, package, and service configuration
-
-## Contributors
-
-- ARTIUM student project team (add names and GitHub profiles here)
-
-## Academic Context
-
-- Program: 3ème année (PI Dev)
-- Semester: Semestre 2
-- Project Type: Academic web engineering project
-- Objective: Build a complete cultural event platform using modern Symfony practices
-
-## Getting Started
-
-1. Install dependencies:
+1. Installer les dépendances PHP.
 
 ```bash
 composer install
 ```
 
-2. Create local environment file:
+2. Créer le fichier d'environnement local.
 
 ```powershell
-Copy-Item .env .env.local
+Copy-Item .env.example .env
 ```
 
-3. Configure `.env.local` with at least:
-- `APP_SECRET`
-- `DATABASE_URL`
-- `MAILER_DSN`
-- `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
-- `MEILISEARCH_URL`, `MEILISEARCH_API_KEY`, `MEILISEARCH_PREFIX`
-- `RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY`
+3. Ouvrir `.env` et renseigner les clés nécessaires.
 
-4. Create database and apply migrations:
+Le fichier `.env.example` est celui à partager ou à pousser sur Git.
+
+4. Installer Ollama et télécharger les modèles utilisés par le projet.
+
+Le projet utilise `nomic-embed-text` pour la recherche sémantique et `llama3.2:3b` pour l'estimation des tickets.
 
 ```bash
-php bin/console doctrine:database:create
-php bin/console doctrine:migrations:migrate
+ollama pull nomic-embed-text
+ollama pull llama3.2:3b
 ```
 
-5. Run the application:
+Si Ollama n'est pas encore lancé, démarrez-le avant de tester l'application.
+
+## Services locaux à lancer
+
+Avant de démarrer Symfony, vérifiez que ce service local est disponible sur la machine:
+
+- Service de reconnaissance faciale: `http://127.0.0.1:8002/compare`
+
+Si ce service n'est pas lancé, la connexion faciale ne fonctionnera pas correctement.
+
+5. Préparer le service de reconnaissance faciale.
+
+La connexion par Face ID n'importe pas un modèle directement dans Symfony. Le projet appelle un service Python externe sur `http://127.0.0.1:8002/compare` via [src/Service/FaceRecognitionService.php](src/Service/FaceRecognitionService.php). Il faut donc télécharger ce service localement sur la machine, installer ses dépendances, récupérer ou entraîner le modèle de reconnaissance faciale prévu par son projet, puis lancer le serveur Python pour le rendre disponible.
+
+Exemple de préparation du service local :
+
+```bash
+git clone <url-du-service-face-id>
+cd <dossier-du-service-face-id>
+pip install -r requirements.txt
+python app.py
+```
+
+Adaptez la commande de lancement au projet Python utilisé, mais le service doit rester accessible sur le port `8002` et exposer `POST /compare`.
+
+Si vous ne démarrez pas ce service, la connexion faciale ne pourra pas fonctionner.
+
+## Lancement
 
 ```bash
 symfony server:start
 ```
 
-6. Optional quality checks:
+Pour vérifier rapidement que les modèles sont bien installés :
 
 ```bash
-php bin/phpunit
-vendor/bin/phpstan analyse --configuration=phpstan.dist.neon
+ollama list
 ```
 
-## Acknowledgments
+## Préparation de la base de données
 
-- Symfony and the open-source PHP ecosystem
-- Doctrine, Twig, and Symfony UX contributors
-- Stripe for payment infrastructure
-- Meilisearch for fast search capabilities
-- Faculty and mentors supporting the ARTIUM project
+1. Créer la base de données.
+
+```bash
+php bin/console doctrine:database:create
+```
+
+2. Appliquer les migrations.
+
+```bash
+php bin/console doctrine:migrations:migrate
+```
+
+3. Si le schéma a changé après une modification des entités, générer une nouvelle migration avant de la rejouer.
+
+```bash
+php bin/console make:migration
+php bin/console doctrine:migrations:migrate
+```
+
+## Variables d'environnement
+
+Voir [.env.example](.env.example).
+
+## Connexion faciale
+
+- Démarrer le service Python sur le port `8002`.
+- Vérifier que l'endpoint `POST /compare` répond bien.
+- Le projet Symfony envoie deux images au service pour comparaison.
+
+## Démo
+
+Vidéo : https://www.youtube.com/watch?v=LXt9yFnbeq4&list=PLaxA49z0jsugwN5JIb9uLEhbhtYCT0w2E&index=1&t=4s
